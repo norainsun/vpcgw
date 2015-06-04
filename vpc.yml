@@ -1,0 +1,5 @@
+---
+- hosts: vpcgw
+  roles:
+    - vpcgw
+
