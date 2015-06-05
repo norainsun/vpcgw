@@ -1,3 +1,6 @@
 ---
 - name: Check ping
   ping:
+
+- name: Copy files
+  copy: src=test dest=/tmp owner=root group=root
