@@ -2,5 +2,20 @@
 - name: Check ping
   ping:
 
-- name: Copy files
-  copy: src=test dest=/tmp owner=root group=root
+#- name: Copy files
+#  copy: src=test dest=/tmp owner=root group=root
+
+- name: Install Nginx
+  apt: pkg=nginx state=installed update_cache=false
+
+
+- name: Install RabbitMQ
+  apt: pkg=rabbitmq-server=3.3.5-1 state=installed update_cache=false
+
+
+- name: Install Redis
+  apt: pkg=redis-server=2.8.17-2 state=installed update_cache=false
+
+
+- name: Install Tomcat
+  apt: pkg=tomcat7 state=installed update_cache=false
