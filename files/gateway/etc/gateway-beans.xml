@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:property-placeholder file-encoding="UTF-8"
+                                  ignore-resource-not-found="true"
+                                  location="classpath*:gateway.properties"/>
+
+    <tx:annotation-driven/>
+
+    <bean id="config" class="com.datayes.paas.gateway.model.Config"
+          p:threadPool="${gateway.thread.pool}"
+          p:dbHost="${gateway.db.host}"
+          p:dbPort="${gateway.db.port}"
+          p:dbDatabase="${gateway.db.database}"
+          p:connectionPool="${gateway.connection.pool}"
+          p:idpUrl="${gateway.idp.url}"
+          p:port="${gateway.port}"
+          p:securePort="${gateway.secure.port}"
+          p:keystorePath="${gateway.secure.keystore}"
+          p:keystorePass="${gateway.secure.storepass}"
+          p:keyPass="${gateway.secure.keypass}"
+          p:host="${gateway.host}"
+          p:timeout="${gateway.timeout}"
+          p:resourceBase="${gateway.resource.base}"
+          p:debug="${gateway.debug}"
+          p:phantomScriptPath="${gateway.phantomScript.path}"
+          p:cloudDomain="${gateway.cloud.domain}"
+          p:mqHost="${gateway.mq.host}"
+          p:mqPort="${gateway.mq.port}"
+          p:mqVHost="${gateway.mq.vhost}"
+          p:mqUsername="${gateway.mq.username}"
+          p:mqPassword="${gateway.mq.password}"
+          p:corsHosts="${gateway.cors.hosts}"
+          p:statsdHost="${gateway.statsd.host}"
+          p:statsdPort="${gateway.statsd.port}"
+          p:apiAuthUrl="${gateway.api.authurl}"/>
+
+    <bean id="proxyServletHandler"
+          class="org.eclipse.jetty.servlet.ServletHandler">
+        <property name="servlets">
+            <list>
+                <bean id="proxyServlet"
+                      class="org.eclipse.jetty.servlet.ServletHolder"
+                      p:name="proxyServlet">
+                    <property name="servlet">
+                        <bean class="com.datayes.paas.gateway.servlet.ProxyServlet"/>
+                    </property>
+                </bean>
+            </list>
+        </property>
+        <property name="servletMappings">
+            <list>
+                <bean class="org.eclipse.jetty.servlet.ServletMapping"
+                      p:pathSpec="/*" p:servletName="proxyServlet"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="errorHandler"
+          class="com.datayes.paas.gateway.handler.ErrorHandler">
+        <property name="errorPages">
+            <map>
+                <entry key="404" value="/404.htm"/>
+                <entry key="500" value="/500.htm"/>
+                <entry key="403" value="/403.htm"/>
+                <entry key="java.lang.Exception" value="/500.htm"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="handlers" class="org.eclipse.jetty.server.handler.HandlerList">
+        <property name="handlers">
+            <list>
+                <bean class="com.datayes.paas.gateway.handler.InitialHandler"/>
+                <!--<bean class="com.datayes.paas.gateway.util.AttackPreventHandler"/>-->
+                <bean class="com.datayes.paas.gateway.handler.ResourceHandler"
+                      p:resourceBase="${gateway.resource.base}"
+                      p:directoriesListed="false"/>
+                <bean class="com.datayes.paas.gateway.handler.CheckApplicationHandler"/>
+                <bean class="com.datayes.paas.gateway.handler.AuthenticationHandler"/>
+                <bean class="com.datayes.paas.gateway.handler.AuthorizationHandler"/>
+                <bean class="com.datayes.paas.gateway.handler.ThrottlingHandler"/>
+                <bean class="org.eclipse.jetty.servlet.ServletContextHandler"
+                      c:options="0" p:contextPath="/"
+                      p:servletHandler-ref="proxyServletHandler"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="Launcher" class="com.datayes.paas.gateway.GatewayLauncher"
+          p:handlers-ref="handlers" p:errorHandler-ref="errorHandler"
+          p:config-ref="config"/>
+
+    <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="${gateway.db.maxTotal}"/>
+        <property name="maxIdle" value="${gateway.db.maxIdle}"/>
+        <property name="maxWaitMillis" value="${gateway.db.maxWait}"/>
+    </bean>
+
+
+    <bean id="jedisConnFactory"
+          class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+          p:hostName="${gateway.db.host}" p:port="${gateway.db.port}"
+          p:database="${gateway.db.database}" p:password="${gateway.db.password}"
+          p:poolConfig-ref="poolConfig"/>
+
+    <bean id="jedisConnFactoryStatistic"
+          class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+          p:hostName="${gateway.db.statistic.host}" p:port="${gateway.db.statistic.port}"
+          p:database="${gateway.db.statistic.database}" p:password="${gateway.db.statistic.password}"
+          p:poolConfig-ref="poolConfig"/>
+
+    <!-- redis template definition -->
+    <!--<bean id="redisTemplate"
+          class="org.springframework.data.redis.core.RedisTemplate"
+          p:connectionFactory-ref="jedisConnFactory">
+        <property name="defaultSerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+    </bean>-->
+    <bean id="stringRedisSerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+
+    <bean id="redisTemplateBasic"
+          class="org.springframework.data.redis.core.RedisTemplate"
+          p:connectionFactory-ref="jedisConnFactory">
+        <property name="defaultSerializer" ref="stringRedisSerializer"/>
+    </bean>
+    <bean id="redisTemplateStatistic"
+          class="org.springframework.data.redis.core.RedisTemplate"
+          p:connectionFactory-ref="jedisConnFactoryStatistic">
+        <property name="defaultSerializer" ref="stringRedisSerializer"/>
+    </bean>
+
+    <bean id="dbUtil" class="com.datayes.paas.gateway.util.DbUtil">
+        <property name="templates">
+            <map>
+                <entry key="redisTemplateBasic" value-ref="redisTemplateBasic"/>
+                <entry key="redisTemplateStatistic" value-ref="redisTemplateStatistic"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean class="com.datayes.paas.gateway.util.HttpUtil"/>
+
+    <!--cache:annotation-driven />
+
+    <bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager" c:template-ref="redisTemplate"/-->
+</beans>
