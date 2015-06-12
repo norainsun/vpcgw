@@ -1,0 +1,37 @@
+---
+- name: Start mysql
+  service: name=mysql state=started
+#
+#- name: Reload Nginx
+#  service: name=nginx state=reloaded
+
+- name: Create usermaster schema
+  when:
+  shell: mysql < /opt/sql/vpcgw_um.sql
+
+
+- name: Create mobilemaster schema
+  shell: mysql < /opt/sql/vpcgw_mm.sql
+
+
+- name: Create message schema
+  shell: mysql < /opt/sql/vpcgw_msg.sql
+
+
+- name: Create cloud schema
+  shell: mysql < /opt/sql/vpcgw_cloud.sql
+
+
+
+
+- name: Import cfg into redis db0
+  shell: cat /opt/rds_data/rds_gwcfg | redis-cli --pipe
+
+
+- name: Import permission into redis db2
+  shell: cat /opt/rds_data/rds_gwpermission | redis-cli -n 2 --pipe
+
+
+
+
+

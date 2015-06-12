@@ -1,12 +1,24 @@
 ---
-- name: Check ping
-  ping:
+#- name: Check ping
+#  ping:
+
 
 
 #- name: Install Nginx
 #  apt: pkg=nginx state=installed update_cache=false
 #
 #
+#- name: Setup ngx config
+#  template: src={{ item }} dest=/etc/nginx/sites-enabled/
+#  with_items:
+#      - ngx/app.conf
+#      - ngx/gateway.conf
+#      - ngx/achilles.conf
+#
+#- name: Copy ngx login
+#  copy: src=web dest=/datayes/
+
+
 #- name: Install RabbitMQ
 #  apt: pkg=rabbitmq-server=3.3.5-1 state=installed update_cache=false
 #
@@ -20,16 +32,93 @@
 #
 
 
-- name: Copy msg_agent
-  copy: src=msg_agent dest=/datayes/
+#- name: Copy msg_agent
+#  copy: src=msg_agent dest=/datayes/
+#
+#- name: Copy gateway
+#  copy: src=gateway dest=/datayes/
+#  register: cpstat
 
-- name: Copy gateway
-  copy: src=gateway dest=/datayes/
-  register: cpstat
 
-- name: Setup gw properties file
-  #when: cpstat|success
-  template: src=gateway.properties_tpl dest=/datayes/gateway/etc/gateway.properties
+#- name: Setup gw properties file
+#  when: cpstat|success
+#  template: src=app/gateway/gateway.properties_tpl dest=/datayes/gateway/etc/gateway.properties
+
+
+
+
+#- name: Install mysql
+#  apt: pkg=mysql state=installed update_cache=true
+#  notify: Start mysql
+#
+#
+#- name: Copy schema sql
+#  copy: src=sql dest=/opt
+#  notify:
+#    - Create usermaster schema
+#    - Create mobilemaster schema
+#    - Create message schema
+#    - Create cloud schema
+
+
+#- name: Create Vhosts in MQ
+#  rabbitmq_vhost: name={{ item }} state=present
+#  with_items: 
+#      - /session  
+#      - /usermaster
+#      - /gateway
+#      - /message
+#
+#
+#- name: Add user usermaster
+#  rabbitmq_user: user=usermaster
+#                 password=usermaster_pass
+#                 vhost=/usermaster
+#                 configure_priv=.*
+#                 read_priv=.*
+#                 write_priv=.*
+#                 state=present
+#
+#
+#- name: Add user message
+#  rabbitmq_user: user=message
+#                 password=message_pass
+#                 vhost=/message
+#                 configure_priv=.*
+#                 read_priv=.*
+#                 write_priv=.*
+#                 state=present
+#
+#
+#- name: Add user gateway
+#  rabbitmq_user: user=gateway
+#                 password=gateway_pass
+#                 vhost=/gateway
+#                 configure_priv=.*
+#                 read_priv=.*
+#                 write_priv=.*
+#                 state=present
+#
+#
+#- name: Add user session
+#  rabbitmq_user: user=session
+#                 password=session_pass
+#                 vhost=/session
+#                 configure_priv=.*
+#                 read_priv=.*
+#                 write_priv=.*
+#                 state=present
+
+
+
+
+- name: Send redis data
+  copy: src=rds_data dest=/opt
+  notify: 
+    - Import cfg into redis db0 
+    - Import permission into redis db2
+
+
 
 
 

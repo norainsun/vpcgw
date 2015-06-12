@@ -1,1 +1,1 @@
-ansible-playbook -s vpc.yml
+ansible-playbook -v -s vpc.yml

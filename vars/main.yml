@@ -2,3 +2,4 @@
 usermaster_url: http://gwall02.gw.wmcloud-stg.com:8080/usermaster/
 vpc_tenant: stg.com
 tenant_domain: stg
+len_of_tenant: 7
