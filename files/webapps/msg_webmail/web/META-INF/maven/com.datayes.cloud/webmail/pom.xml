@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>com.datayes.cloud</groupId>
+        <artifactId>message</artifactId>
+        <version>2.0.3-1</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.datayes.cloud</groupId>
+    <artifactId>webmail</artifactId>
+    <packaging>war</packaging>
+    <name>webmail</name>
+    <url>http://maven.apache.org</url>
+    <dependencies>
+        <dependency>
+            <groupId>com.datayes.cloud.message</groupId>
+            <artifactId>model</artifactId>
+            <version>${version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datayes.paas.sso</groupId>
+            <artifactId>datayes-sso</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>webmail</finalName>
+    </build>
+</project>

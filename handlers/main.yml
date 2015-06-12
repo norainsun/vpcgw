@@ -32,6 +32,23 @@
   shell: cat /opt/rds_data/rds_gwpermission | redis-cli -n 2 --pipe
 
 
+- name: Copy app cfg
+  copy: src=tomcat/{{ item }} dest=/etc/tomcat7/Catalina/localhost/
+  with_items: 
+    - api.xml
+    - usermaster.xml
+    - webmail.xml
+
+- name: Copy cataliana shell script
+  copy: src=tomcat/catalina.sh  dest=/usr/share/tomcat7/bin/
+
+
+- name: Copy catalian properties
+  copy: src=tomcat/catalina.properties  dest=/etc/tomcat7/
+
+
+- name: Copy webapps
+  copy: src=webapps  dest=/datayes/
 
 
 

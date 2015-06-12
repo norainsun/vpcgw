@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<context:property-placeholder
+		file-encoding="UTF-8" ignore-resource-not-found="true"
+		location="classpath*:context/*.properties" />
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.datayes.paas.message.model.mapper" />
+	</bean>
+
+
+	<context:component-scan base-package="com.datayes.paas.message">
+		<!--<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/> -->
+	</context:component-scan>
+
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean id="webTask" class="com.datayes.paas.message.webmail.model.WebTask" />
+
+    <bean id="mqUtil" class="com.datayes.paas.utility.mq.MQUtil">
+        <constructor-arg>
+            <map>
+                <entry key="host" value="${message.mq.host}"/>
+                <entry key="port" value="${message.mq.port}"/>
+                <entry key="vhost" value="${message.mq.vhost}"/>
+                <entry key="username" value="${message.mq.username}"/>
+                <entry key="password" value="${message.mq.password}"/>
+            </map>
+        </constructor-arg>
+    </bean>
+    
+
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close" p:driverClass="com.mysql.jdbc.Driver" p:user="${message.database.username}"
+		p:password="${message.database.password}" p:jdbcUrl="${message.database.url}"
+		p:minPoolSize="${message.database.maxPool}" p:maxPoolSize="${message.database.maxPool}"
+		p:maxIdleTime="${message.database.maxIdle}" />
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		p:dataSource-ref="dataSource" />
+	<bean id="sqlSessionFactory"
+		class="com.datayes.paas.message.model.util.mybatis.SqlSessionFactoryBean"
+		p:typeAliasesPackage="com.datayes.paas.message.model.entity"
+		p:scanTypePackageForEnum="true" p:dataSource-ref="dataSource"
+		p:mapperLocations="classpath*:mappers/*.xml" />
+
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory" />
+        <constructor-arg index="1" value="BATCH" />
+    </bean>
+
+	<!-- Aspect -->
+	<aop:aspectj-autoproxy />
+
+</beans>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:c="http://www.springframework.org/schema/c"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+<context:property-placeholder file-encoding="UTF-8" ignore-resource-not-found="true"
+                                  location="classpath*:*.properties"/>
+    <context:component-scan base-package="com.datayes.paas.usermaster">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
+          p:driverClass="com.mysql.jdbc.Driver"
+          p:user="${usermaster.database.username}"
+          p:password="${usermaster.database.password}"
+          p:jdbcUrl="${usermaster.database.url}"
+          p:minPoolSize="${usermaster.database.maxPool}"
+          p:maxPoolSize="${usermaster.database.maxPool}"
+          p:maxIdleTime="${usermaster.database.maxIdle}" />
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+          p:dataSource-ref="dataSource"/>
+    <bean id="sqlSessionFactory" class="com.datayes.paas.usermaster.util.mybatis.SqlSessionFactoryBean"
+                     p:typeAliasesPackage="com.datayes.paas.model.usermaster.db"
+                     p:scanTypePackageForEnum="true"
+                     p:dataSource-ref="dataSource" p:mapperLocations="classpath*:mappers/**/*.xml"
+        />
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.datayes.paas.usermaster.mapper" />
+    </bean>
+
+    <bean id="passportHandlerFactory" class="com.datayes.paas.usermaster.identityhandler.IdentityHandlerFactory">
+        <property name="handlers">
+            <list>
+                <bean class="com.datayes.paas.usermaster.identityhandler.VpcHandler"/>
+                <bean class="com.datayes.paas.usermaster.identityhandler.VpcTokenHandler"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="OAuth2Manager" class="com.datayes.paas.usermaster.oauth2.OAuth2Manager"/>
+
+    <bean id="jedisConnFactory"
+          class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+          p:hostName="${session.redis.host}" p:port="${session.redis.port}" p:database="${session.redis.database.session}"/>
+
+    <!-- redis template definition -->
+    <bean id="redisTemplate"
+          class="org.springframework.data.redis.core.RedisTemplate"
+          p:connectionFactory-ref="jedisConnFactory">
+        <property name="defaultSerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+    </bean>
+
+    <bean id="mq" class="com.datayes.paas.utility.mq.MQUtil">
+        <constructor-arg>
+            <map>
+                <entry key="host" value="${usermaster.mq.host}"/>
+                <entry key="port" value="${usermaster.mq.port}"/>
+                <entry key="username" value="${usermaster.mq.username}"/>
+                <entry key="password" value="${usermaster.mq.password}"/>
+                <entry key="vhost" value="${usermaster.mq.vhost}"/>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="captchaProducer" class="com.google.code.kaptcha.impl.DefaultKaptcha">
+        <property name="config">
+            <bean class="com.google.code.kaptcha.util.Config">
+                <constructor-arg>
+                    <props>
+                        <prop key="kaptcha.border">no</prop>
+                        <!--<prop key="kaptcha.border.color">black</prop>-->
+                        <prop key="kaptcha.image.width">100</prop>
+                        <prop key="kaptcha.image.height">47</prop>
+                        <prop key="kaptcha.textproducer.char.length">4</prop>
+                        <prop key="kaptcha.textproducer.font.color">black</prop>
+                        <prop key="kaptcha.textproducer.font.size">30</prop>
+                        <prop key="kaptcha.textproducer.char.space">0</prop>
+                        <prop key="kaptcha.background.clear.from">205,205,205</prop>
+                        <prop key="kaptcha.background.clear.to">white</prop>
+                        <prop key="kaptcha.session.key">CLOUD_VERIFY_CODE</prop>
+                        <prop key="kaptcha.noise.color">black</prop>
+                        <prop key="kaptcha.obscurificator.impl">com.google.code.kaptcha.impl.WaterRipple</prop>
+                    </props>
+
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+
+    <!--cache:annotation-driven />
+
+    <bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager" c:template-ref="redisTemplate"/-->
+</beans>
