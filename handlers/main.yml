@@ -1,26 +1,54 @@
 ---
+
+- name: Backup profile
+  shell: mv /etc/profile /etc/profile_bak
+
+- name: Copy profile
+  copy: src=profile dest=/etc/
+
+
+- name: Copy msg script
+  copy: src=upstart/cloud-msg-agent.conf  dest=/etc/init/
+
+- name: Copy gw script
+  copy: src=upstart/cloud-gateway.conf  dest=/etc/init/
+
+
+- name: Start nginx
+  service: name=nginx state=started
+
+
 - name: Start mysql
   service: name=mysql state=started
-#
-#- name: Reload Nginx
-#  service: name=nginx state=reloaded
+
 
 - name: Create usermaster schema
   when:
-  shell: mysql < /opt/sql/vpcgw_um.sql
+  shell: /opt/mysql/server-5.6/bin/mysql < /opt/sql/vpcgw_um.sql
 
 
 - name: Create mobilemaster schema
-  shell: mysql < /opt/sql/vpcgw_mm.sql
+  shell: /opt/mysql/server-5.6/bin/mysql < /opt/sql/vpcgw_mm.sql
 
 
 - name: Create message schema
-  shell: mysql < /opt/sql/vpcgw_msg.sql
+  shell: /opt/mysql/server-5.6/bin/mysql < /opt/sql/vpcgw_msg.sql
 
 
 - name: Create cloud schema
-  shell: mysql < /opt/sql/vpcgw_cloud.sql
+  shell: /opt/mysql/server-5.6/bin/mysql < /opt/sql/vpcgw_cloud.sql
 
+
+
+- name: Copy ngx config
+  template: src={{ item }} dest=/etc/nginx/sites-enabled/
+  with_items:
+      - ngx/app.conf
+      - ngx/gateway.conf
+      - ngx/achilles.conf
+
+- name: Copy web content
+  copy: src=web dest=/datayes/
 
 
 
