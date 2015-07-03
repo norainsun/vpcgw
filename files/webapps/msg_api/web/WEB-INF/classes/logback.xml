@@ -4,7 +4,7 @@
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />    
  
        
-    <property name="file.log.base.path" value="/datayes/msg_api/logs" />
+    <property name="file.log.base.path" value="/datayes/webapps/msg_api/logs" />
     <property name="file.log.max.history" value="30" />
     <property name="file.log.max.size" value="5MB" />
    
