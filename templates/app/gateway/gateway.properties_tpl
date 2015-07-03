@@ -29,7 +29,7 @@ gateway.phantomScript.path=/opt/seo.js
 gateway.authorization.endpoint=http://10.20.131.232:9764/authorizationService/authorize
 gateway.cloud.domain=.{{tenant_domain}}.wmcloud.com
 
-gateway.mq.host=10.253.0.233
+gateway.mq.host=127.0.0.1
 gateway.mq.vhost=/gateway
 gateway.mq.port=5672
 gateway.mq.username=gateway

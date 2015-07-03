@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8"><title>Loading...</title>
+    <script>
+     (function(){
+         var w = window, d = w.document,
+         l = w.location, p = l.pathname, pc = l.protocol, h = l.hostname,
+         ach = 'https://achilles.wmcloud.com',
+         biz = p.split('/')[1], s, c = {};
+         s = d.createElement('script');
+         s.src = ach + '/achy/fire-2.1.0.js';
+         c.achybase = ach;
+         c.bizbase = '/' + biz;
+         c.apiRoot = pc + '//' + h.replace(/^app/ig, 'gw');
+         c.api = c.apiRoot + '/' + biz;
+
+         w._preboot = c;
+         d.head.appendChild(s);
+     })();
+    </script>
+</head><body></body></html>

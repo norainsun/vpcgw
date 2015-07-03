@@ -1,5 +1,13 @@
 ---
 
+- name: Install jdk7u71
+  shell: tar xvf /usr/java/jdk-7u71-linux-x64.gz -C /usr/java/
+
+
+- name: Change jdk owner
+  shell: chown root:root -R /usr/java/jdk1.7.0_71
+
+
 - name: Backup profile
   shell: mv /etc/profile /etc/profile_bak
 
@@ -39,6 +47,9 @@
   shell: /opt/mysql/server-5.6/bin/mysql < /opt/sql/vpcgw_cloud.sql
 
 
+- name: Add user paas
+  shell: /opt/mysql/server-5.6/bin/mysql < /opt/sql/adduser.sql
+
 
 - name: Copy ngx config
   template: src={{ item }} dest=/etc/nginx/sites-enabled/
@@ -54,6 +65,16 @@
 
 - name: Import cfg into redis db0
   shell: cat /opt/rds_data/rds_gwcfg | redis-cli --pipe
+
+- name: Register usermaster 
+  shell: cat /opt/rds_data/rds_gwum | redis-cli --pipe
+
+- name: Register usermaster ignore
+  shell: cat /opt/rds_data/rds_gwumigr | redis-cli --pipe
+
+
+- name: Import token into redis db1
+  shell: cat /opt/rds_data/rds_gwtoken | redis-cli -n 1 --pipe
 
 
 - name: Import permission into redis db2
